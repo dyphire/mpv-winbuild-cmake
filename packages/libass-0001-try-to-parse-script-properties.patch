@@ -1,0 +1,25 @@
+From 4cfbbe2f70c02e156785de9bc12d124b6914bd29 Mon Sep 17 00:00:00 2001
+From: dyphire <qimoge@gmail.com>
+Date: Wed, 27 Sep 2023 22:48:04 +0800
+Subject: [PATCH] Try to parse script properties even if missing "[Script Info]"
+
+---
+ libass/ass.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libass/ass.c b/libass/ass.c
+index 0679483..c0734d2 100644
+--- a/libass/ass.c
++++ b/libass/ass.c
+@@ -1143,7 +1143,7 @@ mem_fail:
+ static int process_line(ASS_Track *track, char *str)
+ {
+     skip_spaces(&str);
+-    if (!ass_strncasecmp(str, "[Script Info]", 13)) {
++    if (!ass_strncasecmp(str, "[Script Info]", 13) || !ass_strncasecmp(str, "ScriptType:", 11)) {
+         track->parser_priv->state = PST_INFO;
+     } else if (!ass_strncasecmp(str, "[V4 Styles]", 11)) {
+         track->parser_priv->state = PST_STYLES;
+-- 
+2.41.0.windows.3
+
