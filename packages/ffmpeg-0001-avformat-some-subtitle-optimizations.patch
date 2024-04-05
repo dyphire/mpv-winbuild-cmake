@@ -1,0 +1,98 @@
+From a9327addf332c09a06f76d9c8cf516eb933d9aa0 Mon Sep 17 00:00:00 2001
+From: dyphire <qimoge@gmail.com>
+Date: Wed, 27 Sep 2023 23:55:32 +0800
+Subject: [PATCH] avformat/subtitles: check for double BOM in UTF-16 files
+
+---
+ libavformat/assdec.c    |  5 +++--
+ libavformat/subtitles.c | 24 +++++++++++++++++++++---
+ libavformat/subtitles.h |  1 +
+ 3 files changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/libavformat/assdec.c b/libavformat/assdec.c
+index bf7b8a73a2..e2ad3f9a34 100644
+--- a/libavformat/assdec.c
++++ b/libavformat/assdec.c
+@@ -34,7 +34,7 @@ typedef struct ASSContext {
+ 
+ static int ass_probe(const AVProbeData *p)
+ {
+-    char buf[13];
++    char buf[1000];
+     FFTextReader tr;
+     ff_text_init_buf(&tr, p->buf, p->buf_size);
+ 
+@@ -43,7 +43,7 @@ static int ass_probe(const AVProbeData *p)
+ 
+     ff_text_read(&tr, buf, sizeof(buf));
+ 
+-    if (!memcmp(buf, "[Script Info]", 13))
++    if (strstr(buf, "[Script Info]") || strstr(buf, "[V4 Styles]") || strstr(buf, "[V4+ Styles]"))
+         return AVPROBE_SCORE_MAX;
+ 
+     return 0;
+@@ -123,6 +123,7 @@ static int ass_read_header(AVFormatContext *s)
+     av_bprint_init(&rline,  0, AV_BPRINT_SIZE_UNLIMITED);
+ 
+     ass->q.keep_duplicates = 1;
++    ass->q.keep_negative_dur = 1;
+ 
+     for (;;) {
+         int64_t pos = get_line(&line, &tr);
+diff --git a/libavformat/subtitles.c b/libavformat/subtitles.c
+index 3413763c7b..7ac581d8c3 100644
+--- a/libavformat/subtitles.c
++++ b/libavformat/subtitles.c
+@@ -44,6 +44,20 @@ void ff_text_init_avio(void *s, FFTextReader *r, AVIOContext *pb)
+             r->buf_pos += 3;
+         }
+     }
++    if (r->type != FF_UTF_8) {
++        // Check for double BOM in UTF-16 LE/BE files
++        for (i = 0; i < 2; i++)
++            r->buf[r->buf_len++] = avio_r8(r->pb);
++        if (strncmp("\xFF\xFE\xFF\xFE", r->buf, 4) == 0 ||
++            strncmp("\xFE\xFF\xFE\xFF", r->buf, 4) == 0) {
++            // We did find a second BOM, so move buf_pos two bytes ahead
++            r->buf_pos += 2;
++        } else {
++            // We did not find a second BOM, undo the seek
++            r->buf_len -= 2;
++            avio_seek(r->pb, -2, SEEK_CUR); // Seek back two bytes
++        }
++    }
+     if (s && (r->type == FF_UTF16LE || r->type == FF_UTF16BE))
+         av_log(s, AV_LOG_INFO,
+                "UTF16 is automatically converted to UTF8, do not specify a character encoding\n");
+@@ -211,9 +225,13 @@ void ff_subtitles_queue_finalize(void *log_ctx, FFDemuxSubtitlesQueue *q)
+     qsort(q->subs, q->nb_subs, sizeof(*q->subs),
+           q->sort == SUB_SORT_TS_POS ? cmp_pkt_sub_ts_pos
+                                      : cmp_pkt_sub_pos_ts);
+-    for (i = 0; i < q->nb_subs; i++)
+-        if (q->subs[i]->duration < 0 && i < q->nb_subs - 1 && q->subs[i + 1]->pts - (uint64_t)q->subs[i]->pts <= INT64_MAX)
+-            q->subs[i]->duration = q->subs[i + 1]->pts - q->subs[i]->pts;
++    if (!q->keep_negative_dur) {
++        for (i = 0; i < q->nb_subs; i++)
++            if (q->subs[i]->duration < 0 &&
++                i < q->nb_subs - 1 &&
++                q->subs[i + 1]->pts - (uint64_t)q->subs[i]->pts <= INT64_MAX)
++                q->subs[i]->duration = q->subs[i + 1]->pts - q->subs[i]->pts;
++    }
+ 
+     if (!q->keep_duplicates)
+         drop_dups(log_ctx, q);
+diff --git a/libavformat/subtitles.h b/libavformat/subtitles.h
+index f4993fe20d..4fbbff9ef9 100644
+--- a/libavformat/subtitles.h
++++ b/libavformat/subtitles.h
+@@ -107,6 +107,7 @@ typedef struct {
+     int current_sub_idx;    ///< current position for the read packet callback
+     enum sub_sort sort;     ///< sort method to use when finalizing subtitles
+     int keep_duplicates;    ///< set to 1 to keep duplicated subtitle events
++    int keep_negative_dur;  ///< set to 1 to keep negative event duration
+ } FFDemuxSubtitlesQueue;
+ 
+ /**
+-- 
+2.41.0.windows.3
+
