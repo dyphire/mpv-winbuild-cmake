@@ -23,9 +23,7 @@ ExternalProject_Add(mpv
         spirv-cross
         vapoursynth
         libsdl2
-    GIT_REPOSITORY https://github.com/dyphire/mpv.git
-    GIT_REMOTE_NAME origin
-    GIT_TAG patch
+    GIT_REPOSITORY https://github.com/mpv-player/mpv.git
     SOURCE_DIR ${SOURCE_LOCATION}
     GIT_CLONE_FLAGS "--filter=tree:0"
     PATCH_COMMAND ${EXEC} curl -sL https://github.com/mpv-player/mpv/pull/10862.patch | git am --3way --whitespace=fix
