@@ -30,6 +30,7 @@ list(APPEND ep
     libdvdnav
     libiconv
     luajit
+    luasocket
     fribidi
     expat
     nettle
