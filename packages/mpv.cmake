@@ -27,9 +27,7 @@ ExternalProject_Add(mpv
     SOURCE_DIR ${SOURCE_LOCATION}
     GIT_CLONE_FLAGS "--filter=tree:0"
     PATCH_COMMAND ${EXEC} curl -sL https://github.com/mpv-player/mpv/pull/10862.patch | git am --3way --whitespace=fix
-          COMMAND ${EXEC} curl -sL https://github.com/mpv-player/mpv/pull/13614.patch | git am --3way --whitespace=fix
-          COMMAND ${EXEC} curl -sL https://github.com/mpv-player/mpv/pull/13916.patch | git am --3way --whitespace=fix
-          COMMAND ${EXEC} curl -sL https://github.com/mpv-player/mpv/pull/13917.patch | git am --3way --whitespace=fix
+          COMMAND ${EXEC} curl -sL https://github.com/mpv-player/mpv/pull/14847.patch | git am --3way --whitespace=fix
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ${EXEC} CONF=1 meson setup <BINARY_DIR> <SOURCE_DIR>
         --prefix=${MINGW_INSTALL_PREFIX}
