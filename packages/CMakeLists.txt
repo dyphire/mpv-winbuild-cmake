@@ -20,7 +20,6 @@ list(APPEND ep
     speex
     libmodplug
     libvpx
-    xvidcore
     game-music-emu
     libpng
     x264
