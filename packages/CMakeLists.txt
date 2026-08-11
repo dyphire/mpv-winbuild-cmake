@@ -85,6 +85,9 @@ list(APPEND ep
     libzvbi
     libaribcaption
     libsixel
+    libvidstab
+    fdk-aac
+    frei0r
     ffmpeg
     ngtcp2
     nghttp3
