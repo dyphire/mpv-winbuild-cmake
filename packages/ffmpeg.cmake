@@ -44,6 +44,12 @@ ExternalProject_Add(ffmpeg
         rubberband
         libva
         openal-soft
+        vulkan
+        fdk-aac
+        frei0r
+        xz
+        libsdl2
+        libvidstab
     GIT_REPOSITORY https://github.com/FFmpeg/FFmpeg.git
     SOURCE_DIR ${SOURCE_LOCATION}
     GIT_CLONE_FLAGS "--sparse --filter=tree:0"
@@ -57,7 +63,9 @@ ExternalProject_Add(ffmpeg
         --pkg-config-flags=--static
         --enable-cross-compile
         --enable-runtime-cpudetect
+        --enable-frei0r
         --enable-gpl
+        --enable-nonfree
         --enable-version3
         --enable-avisynth
         --enable-vapoursynth
@@ -65,6 +73,7 @@ ExternalProject_Add(ffmpeg
         --enable-libbluray
         --enable-libdvdnav
         --enable-libdvdread
+        --enable-libfdk-aac
         --enable-libfreetype
         --enable-libfribidi
         --enable-libfontconfig
@@ -97,6 +106,7 @@ ExternalProject_Add(ffmpeg
         --enable-libvpl
         --enable-libjxl
         --enable-libplacebo
+        --enable-libvidstab
         --enable-libzvbi
         --enable-libaribcaption
         --enable-cuda-llvm
@@ -106,6 +116,7 @@ ExternalProject_Add(ffmpeg
         --enable-amf
         --enable-openal
         --enable-opengl
+        --enable-vulkan
         --disable-doc
         --disable-ffplay
         --disable-ffprobe
