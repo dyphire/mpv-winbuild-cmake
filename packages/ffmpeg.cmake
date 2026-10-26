@@ -115,7 +115,6 @@ ExternalProject_Add(ffmpeg
         --enable-nvenc
         --enable-amf
         --enable-openal
-        --enable-opengl
         --enable-vulkan
         --disable-doc
         --disable-ffplay
